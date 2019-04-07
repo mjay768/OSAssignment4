@@ -37,6 +37,8 @@ int main(int *argc, char *argv[])
     startn = clk->nsec;
     int r,s,proc=-1,p;
     float wait,_time,quantum;
+    //printf("\n%d",getPcbByPid());
+
     while((1))
     {
         if(pid == clk->pid)
@@ -81,7 +83,8 @@ int main(int *argc, char *argv[])
             }
             else
             {
-                fprintf(stderr,"Error occurred in child process %d\n",getpid());
+                fprintf(stderr,"\nProc = %d",proc);
+                fprintf(stderr,"\nError occurred in child process %d\n",getpid());
             }
             clk->pid = -1;
             sem_post(sem); 

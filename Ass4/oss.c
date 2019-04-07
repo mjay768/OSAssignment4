@@ -173,7 +173,7 @@ int main(int argc, char *argv[])
 				exit(0);
 			}
 
-			TTG = TTG + rand()%3;
+			TTG += rand()%3;
 			pcb[location].priority = getPriority();
 			if(pcb[location].priority == 1)
 				pcb[location].pclass == RT;
@@ -181,7 +181,7 @@ int main(int argc, char *argv[])
 				pcb[location].pclass == UP;
 			
 			printf("\n Priority is %d\n", pcb[location].priority);
-			pcb[location].pid = pid;
+			pcb[location].pid = getpid();
 			switch (pcb[location].priority)
 			{
 				case 0:
@@ -204,10 +204,12 @@ int main(int argc, char *argv[])
 					break;
 				default:
 					break;
+				
 			}
+			location = -1;
 
 		}
-		clk -> nsec += rand()%100;
+		clk -> nsec += rand()%1000;
 		time_increment();
 
 		if((proc = pop(&rr)) > 0)
@@ -243,7 +245,7 @@ int main(int argc, char *argv[])
 					fprintf(fptr,"OSS: Receiving that process with PID %d ran for %ld\n",pid,pcb[location].last_burst);
 					linecount++;
 				}
-				waitpid(proc, &status, NULL);
+				waitpid(proc, &status, 0);
 				if(linecount < 10000)
 				{
 					fprintf(fptr, "OSS: Process PID %d has finished executing and took time of %f\n",pid,pcb[location].total_time);
@@ -255,11 +257,18 @@ int main(int argc, char *argv[])
 			{
 				if(linecount < 10000)
 				{
-					fprintf(fptr, "OSS: Not using its entire quantum");
-					fprintf(fptr,"OSS: Putting process with PID %d into Queue 0",pid);
+					fprintf(fptr,"OSS: Receiving that process with PID %d ran for %ld\n",pid,pcb[location].last_burst);
+					linecount++;
+				}
+				if(pcb[location].last_burst <= 5000000)
+				{
+					fprintf(fptr,"OSS: Not used its entire time quantum\n");
+					fprintf(fptr,"OSS: utting process with PID %d into queue 0\n",proc);
 					linecount+=2;
 				}
+				
 				push(&rr,proc);
+			}
 				clk -> nsec += pcb[location].last_burst;
 				time_increment();
 
@@ -267,7 +276,6 @@ int main(int argc, char *argv[])
 				snano = clk -> nsec;
 				location = -1;
 
-			}
 			
 
 		}
