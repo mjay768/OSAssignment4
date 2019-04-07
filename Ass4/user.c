@@ -10,6 +10,8 @@
 
 #include "processqueue.h"
 #include "processinfo.h"
+#define NANO 1000000000
+#define MILLI 1000000
 
 PCB *pcb;
 Clock *clk;
@@ -19,8 +21,10 @@ int main(int *argc, char *argv[])
 {
     printf("\nI am child Process %d", getpid());
     int pcbid = atoi(argv[1]);
+    printf("\npcbid from child %d",pcbid);
     printf("\n attached PCB");
     int clockid = atoi(argv[2]);
+    printf("\n Clk id from child %d",clockid);
     printf("\nAttached Clock");
     //char *semname = argv[3];
     int startsec=0,endsec=0,diffsec=0,choice,pid;
@@ -59,7 +63,7 @@ int main(int *argc, char *argv[])
                     wait = (float)r + _time;
                     break;
                 case 3:
-                    p = rand()%(99+1-1) + 1;
+                    p = rand()%(100-1) + 1;
                     quantum = clk->quantum;
                     wait = (float)(p*quantum)/100;
                     break;
@@ -104,11 +108,12 @@ int main(int *argc, char *argv[])
         printf("\n Reached almost to the end of child\n");
         sem_post(sem);
         printf("\n sem_post done");
-    
+        fprintf(stderr,"\nSeconds : %d Nanoseconds : %ld\n",clk->sec,clk->nsec);
 
     shmdt(pcb);
-    shmdt(clk);
     printf("\nShared Memory detached in child");
+    shmdt(clk);
+    
 
     return 0;
 

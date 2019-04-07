@@ -31,7 +31,7 @@ PCB *pcb;
 Clock *clk;
 int linecount = 0;
 
-
+int TTG;
  char debugtext[128];
 FILE *debugfile;
 
@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
 	char opt;
 	char *logfile = "log";
 	char *dfile = "debugfile.txt";
-	int i,status,pid,location = -1,TTG,proc;
+	int i,status,pid,location = -1,proc;
 	signal(SIGALRM, sigintHandler);
     signal(SIGINT, sigintHandler);
 
@@ -127,13 +127,15 @@ int main(int argc, char *argv[])
 	snprintf(arg1,10,"%d", shmid);
 	snprintf(arg2,10,"%d",clockid);
 	snprintf(arg3,20,"%s", "ponagand");
-	
+	printf("\n PCB id from parent %d",shmid);
+	printf("\n Clk id from parent %d",clockid);
 	clk -> sec = 0;
 	clk -> nsec = 0;
 	clk -> pid = -1;
 	clk -> quantum = 0;
 	clk -> count = 0;
 
+	alarm(t);
 	for(i = 0; i<18 ; i++)
 	{
 		clearPCB(i); // Using this function just to make it easy initializing the PCB.
@@ -146,6 +148,7 @@ int main(int argc, char *argv[])
 	init(&hq);
 	init(&mq);
 	init(&lq);
+	//alarm(5);
 	srand(time(NULL));
 	writedebug("Queues Initialized");
 	printf("\nQueues Initialized\n");
@@ -166,12 +169,13 @@ int main(int argc, char *argv[])
 	{
 		if(location = createChildProc() >= 0 && clk -> sec >= TTG)
 		{
-			if((pid = fork()) == 0)
+			if( (pid = fork()) == 0)
 			{
 				execlp("./user","./user",arg1,arg2,NULL);
 				fprintf(stderr,"\nFork error occurred\n");
 				exit(0);
 			}
+
 
 			TTG += rand()%3;
 			pcb[location].priority = getPriority();
@@ -181,7 +185,7 @@ int main(int argc, char *argv[])
 				pcb[location].pclass == UP;
 			
 			printf("\n Priority is %d\n", pcb[location].priority);
-			pcb[location].pid = getpid();
+			pcb[location].pid = pid;
 			switch (pcb[location].priority)
 			{
 				case 0:
@@ -263,7 +267,7 @@ int main(int argc, char *argv[])
 				if(pcb[location].last_burst <= 5000000)
 				{
 					fprintf(fptr,"OSS: Not used its entire time quantum\n");
-					fprintf(fptr,"OSS: utting process with PID %d into queue 0\n",proc);
+					fprintf(fptr,"OSS: Putting process with PID %d into queue 0\n",proc);
 					linecount+=2;
 				}
 				
@@ -497,7 +501,7 @@ void sigintHandler(int sig_num)
     }
 	fprintf(stderr,"Remaining Children : Removed\n");
     
-    
+    fprintf(stderr,"\nTTG : %d",TTG);
   
 	shmdt(pcb);
 	shmdt(clk);
