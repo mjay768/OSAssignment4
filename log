@@ -1,94 +1,72 @@
-OSS: Generating process with PID 11466 (Medium priority) and putting it in queue 0 at time 0:0
-OSS: Dispatching pid : 11466 at 0:798
-OSS: Total time this dispatch was 798
-OSS: Receiving that process with PID 11466 ran for 0
+OSS: Generating process with PID 3053 (High priority) and putting it in queue 0 at time 0:0
+OSS: Dispaching PID 3053 at time 0:119
+OSS: Total time this dispatch was 119
+OSS: Receiving that process with PID 3053 ran for 0
 OSS: not used it entire quantum 
-OSS: Putting process with PID 11466 into queue 0
-OSS: Generating process with PID 11467 (Round Robin High Priority) and putting it in queue 1 at time 1000593162:5000000
-OSS: Dispatching pid : 11467 at 1000593162:5000948
-OSS: Total time this dispatch was 948
-OSS: Receiving that process with PID 11467 ran for 0
+OSS: Putting process with PID 3053 into queue 1
+OSS: Dispaching PID 3053 at time 0:780
+OSS: Total time this dispatch was 780
+OSS: Receiving that process with PID 3053 ran for 0
 OSS: not used it entire quantum 
-OSS: Putting process with PID 11467 into queue 0
-OSS: Generating process with PID 11468 (High priority) and putting it in queue 0 at time 1008981770:5000000
-OSS: Dispatching pid : 11467 at 1008981770:5000350
-OSS: Total time this dispatch was 350
-OSS: Receiving that process with PID 11467 ran for 0
+OSS: Putting process with PID 3053 into queue 1
+OSS: Generating process with PID 3054 (High priority) and putting it in queue 0 at time 1008981770:10000000
+OSS: Dispaching PID 3053 at time 1008981770:10000144
+OSS: Total time this dispatch was 144
+OSS: Receiving that process with PID 3053 ran for 0
 OSS: not used it entire quantum 
-OSS: Putting process with PID 11467 into queue 0
-OSS: Generating process with PID 11469 (High priority) and putting it in queue 0 at time 1008981770:0
-OSS: Dispatching pid : 11468 at 1008981770:535
-OSS: Total time this dispatch was 535
-OSS: Receiving that process with PID 11468 ran for 0
+OSS: Putting process with PID 3053 into queue 1
+OSS: Generating process with PID 3055 (Medium priority) and putting it in queue 0 at time 1017370378:10000000
+OSS: Dispatching pid : 3055 at 1017370378:10000943
+OSS: Total time this dispatch was 943
+OSS: Receiving that process with PID 3055 ran for 0
 OSS: not used it entire quantum 
-OSS: Putting process with PID 11468 into queue 0
-OSS: Generating process with PID 11470 (High priority) and putting it in queue 0 at time 1014350479:5000000
-OSS: Dispatching pid : 11468 at 1014350479:5000871
-OSS: Total time this dispatch was 871
-OSS: Receiving that process with PID 11468 ran for 0
+OSS: Putting process with PID 3055 into queue 0
+OSS: Generating process with PID 3056 (High priority) and putting it in queue 0 at time 1020054732:5000000
+OSS: Dispatching pid : 3056 at 1020054732:5000806
+OSS: Total time this dispatch was 806
+OSS: Receiving that process with PID 3056 ran for 0
 OSS: not used it entire quantum 
-OSS: Putting process with PID 11468 into queue 0
-OSS: Generating process with PID 11471 (Medium priority) and putting it in queue 0 at time 1017370378:5000000
-OSS: Dispatching pid : 11469 at 1017370378:5000287
-OSS: Total time this dispatch was 287
-OSS: Receiving that process with PID 11469 ran for 0
+OSS: Putting process with PID 3056 into queue 0
+OSS: Generating process with PID 3057 (Medium priority) and putting it in queue 0 at time 1022739086:5000000
+OSS: Dispatching pid : 3057 at 1022739086:5000223
+OSS: Total time this dispatch was 223
+OSS: Receiving that process with PID 3057 ran for 0
 OSS: not used it entire quantum 
-OSS: Putting process with PID 11469 into queue 0
-OSS: Generating process with PID 11472 (High priority) and putting it in queue 0 at time 1020054732:5000000
-OSS: Dispatching pid : 11469 at 1020054732:5000918
-OSS: Total time this dispatch was 918
-OSS: Receiving that process with PID 11469 ran for 0
+OSS: Putting process with PID 3057 into queue 0
+OSS: Generating process with PID 3058 (High priority) and putting it in queue 0 at time 1024416808:5000000
+OSS: Dispatching pid : 3057 at 1024416808:5000817
+OSS: Total time this dispatch was 817
+OSS: Receiving that process with PID 3057 ran for 0
 OSS: not used it entire quantum 
-OSS: Putting process with PID 11469 into queue 0
-OSS: Generating process with PID 11473 (High priority) and putting it in queue 0 at time 1022309590:4200000
-OSS: Dispatching pid : 11471 at 1022309590:4200321
-OSS: Total time this dispatch was 321
-OSS: Receiving that process with PID 11471 ran for 0
+OSS: Putting process with PID 3057 into queue 0
+OSS: Generating process with PID 3059 (Medium priority) and putting it in queue 0 at time 1025758985:5000000
+OSS: Dispatching pid : 3058 at 1025758985:5000115
+OSS: Total time this dispatch was 115
+OSS: Receiving that process with PID 3058 ran for 0
 OSS: not used it entire quantum 
-OSS: Putting process with PID 11471 into queue 0
-OSS: Generating process with PID 11474 (High priority) and putting it in queue 0 at time 1024202060:5000000
-OSS: Dispatching pid : 11470 at 1024202060:5000366
-OSS: Total time this dispatch was 366
-OSS: Receiving that process with PID 11470 ran for 0
+OSS: Putting process with PID 3058 into queue 0
+OSS: Generating process with PID 3060 (Medium priority) and putting it in queue 0 at time 1027101162:5000000
+OSS: Dispatching pid : 3058 at 1027101162:5000717
+OSS: Total time this dispatch was 717
+OSS: Receiving that process with PID 3058 ran for 0
 OSS: not used it entire quantum 
-OSS: Putting process with PID 11470 into queue 0
-OSS: Generating process with PID 11475 (High priority) and putting it in queue 0 at time 1025195271:3700000
-OSS: Dispatching pid : 11470 at 1025195271:3700852
-OSS: Total time this dispatch was 852
-OSS: Receiving pid : 11470 executed 381000000
-OSS: PID 11470 finished execution at time  0.418900  Total : 31933754.000000
-OSS: Dispatching pid : 11472 at 0:818
-OSS: Total time this dispatch was 818
-OSS: Receiving that process with PID 11472 ran for 0
+OSS: Putting process with PID 3058 into queue 0
+OSS: Generating process with PID 3061 (High priority) and putting it in queue 0 at time 1027101162:0
+OSS: Dispatching pid : 3059 at 1027101162:199
+OSS: Total time this dispatch was 199
+OSS: Receiving that process with PID 3059 ran for 0
 OSS: not used it entire quantum 
-OSS: Putting process with PID 11472 into queue 0
-OSS: Generating process with PID 11476 (High priority) and putting it in queue 0 at time 986822423:1600000
-OSS: Dispatching pid : 11471 at 986822423:1600161
-OSS: Total time this dispatch was 161
-OSS: Receiving that process with PID 11471 ran for 0
+OSS: Putting process with PID 3059 into queue 0
+OSS: Generating process with PID 3062 (High priority) and putting it in queue 0 at time 1028443339:5000000
+OSS: Dispatching pid : 3059 at 1028443339:5000085
+OSS: Total time this dispatch was 85
+OSS: Receiving pid : 3059 executed 5000000
+OSS: PID 3059 finished execution at time  0.055000  Total : 2684354.000000
+OSS: Dispatching pid : 3060 at 0:496
+OSS: Total time this dispatch was 496
+OSS: Receiving that process with PID 3060 ran for 0
 OSS: not used it entire quantum 
-OSS: Putting process with PID 11471 into queue 0
-OSS: Generating process with PID 11477 (High priority) and putting it in queue 0 at time 989399403:300000
-OSS: Dispatching pid : 11473 at 989399403:300794
-OSS: Total time this dispatch was 794
-OSS: Receiving that process with PID 11473 ran for 0
-OSS: not used it entire quantum 
-OSS: Putting process with PID 11473 into queue 0
-OSS: Generating process with PID 11478 (High priority) and putting it in queue 0 at time 998445678:2100000
-OSS: Dispatching pid : 11472 at 998445678:2100494
-OSS: Total time this dispatch was 494
-OSS: Receiving that process with PID 11472 ran for 3569999872
-OSS: Putting process with PID 11472 into queue 0
-OSS: Generating process with PID 11479 (High priority) and putting it in queue 0 at time 1080343665:139999744
-OSS: Dispatching pid : 11474 at 1080343665:139999977
-OSS: Total time this dispatch was 233
-OSS: Receiving pid : 11474 executed 3150000
-OSS: PID 11474 finished execution at time  3.577152  Total : 93534456.000000
-OSS: Dispatching pid : 11473 at 0:276
-OSS: Total time this dispatch was 276
-OSS: Receiving that process with PID 11473 ran for 0
-OSS: not used it entire quantum 
-OSS: Putting process with PID 11473 into queue 0
-OSS: Generating process with PID 11480 (High priority) and putting it in queue 0 at time 997573263:3750000
-OSS: Dispatching pid : 11474 at 997573263:3750171
-OSS: Total time this dispatch was 171
+OSS: Putting process with PID 3060 into queue 0
+OSS: Generating process with PID 3063 (High priority) and putting it in queue 0 at time 1000593162:5000000
+OSS: Dispatching pid : 3059 at 1000593162:5000550
+OSS: Total time this dispatch was 550

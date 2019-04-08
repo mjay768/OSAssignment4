@@ -3,16 +3,17 @@
 /* Desctiption : This is a brief replication     **/
 /*  of process scheduling in an Operating System */
 /************************************************/
-#include <sys/ipc.h> 
-#include <sys/shm.h> 
+ 
 #include <stdio.h> 
 #include <stdlib.h>
 #include <signal.h> 
-#include <string.h>
-#include <time.h>
-#include <unistd.h>
 #include <semaphore.h> 
 #include <fcntl.h>
+#include <time.h>
+#include <unistd.h>
+#include <sys/ipc.h> 
+#include <sys/shm.h>
+#include <string.h>
 #include "processqueue.h"
 #include "processinfo.h"
 
@@ -35,6 +36,8 @@ int main (int argc,char *argv[])
 
 	int opt, i,status,pid,t=2;
 	int generateindex = 0;
+
+	/* Queue declarations */
 	struct Queue rr;
 	struct Queue hq;
 	struct Queue mq;
@@ -42,6 +45,7 @@ int main (int argc,char *argv[])
 	signal(SIGALRM, sigintHandler);
     signal(SIGINT, sigintHandler);
 	
+	/*********************/
 	
 	while((opt= getopt(argc,argv, "hlt")) != -1)
     {
@@ -65,19 +69,21 @@ int main (int argc,char *argv[])
       exit(1);
     }
 	fprintf(stderr,"Log file : %s\n",logfile);
-	key_t key = ftok("ponagand",'m');
-	key_t key2 = ftok("ponagand",'j');
+
+	// Keys for Shared Memories for PCB and Clock
+	key_t memkey = ftok("ponagand",'m');
+	key_t clkkey = ftok("ponagand",'j');
 	int sizepcb = 18 * sizeof(pcb);
 	if((sem = sem_open(SemName, O_CREAT, 0666, 0)) == SEM_FAILED )
 		fprintf(stderr,"Semaphore could not be opened\n");
 	
-	pcbid = shmget(key,sizepcb,0666|IPC_CREAT);
+	pcbid = shmget(memkey,sizepcb,0666|IPC_CREAT);
 	if ( pcbid == -1 )
 		fprintf(stderr,"Shared Memory : Error Opening");
 	
 	pcb = (PCB *)shmat(pcbid, NULL, 0);
 	
-	clkid = shmget(key2,sizeof(clk),0666|IPC_CREAT);
+	clkid = shmget(clkkey,sizeof(clk),0666|IPC_CREAT);
 	if ( clkid == -1 )
 		fprintf(stderr,"Clock Memory : Error opening");
 	
@@ -91,7 +97,7 @@ int main (int argc,char *argv[])
 	
 	
 	
-	
+	// Initializing PCB for future use 
 	for(i  = 0; i < 18; i++ )
 	{
 		pcb[i].CPU_time = 0.0;
@@ -102,7 +108,6 @@ int main (int argc,char *argv[])
 		pcb[i].status = 0;
 	}
 	
-	//pcb[0].CPU_time = -90;
 	
 	
 	
@@ -115,13 +120,13 @@ int main (int argc,char *argv[])
 	       
     
  	int location = -1,proc;
-	srand(time(NULL));
+	srand(time(NULL)); // Initiate some value to make rand() generate new values
 	init(&rr);
 	init(&lq);
 	 
 	while(1){
 		
-		if( (location = createChild()) >= 0  && clk -> sec  >= generateindex)
+		if( (location = createChildProc()) >= 0  && clk -> sec  >= generateindex)
 		{
 	
 	
@@ -140,32 +145,32 @@ int main (int argc,char *argv[])
 			if(pcb[location].priority == 0)
 			{
 				if(linecount < 10000)
-					fprintf(fptr,"OSS: Generating process with PID %d (Round Robin High Priority) and putting it in queue 1 at time %d:%ld\n",pid,clk -> sec,clk -> nano,linecount++);
+					fprintf(fptr,"OSS: Generating process with PID %d (Round Robin High Priority) and putting it in queue 1 at time %d:%ld\n",pid,clk -> sec,clk -> nano);
+					linecount++;
 				push(&rr, pid);
 			}
 			else if(pcb[location].priority == 1)
 			{
 				if(linecount < 10000)
-					fprintf(fptr,"OSS: Generating process with PID %d (High priority) and putting it in queue 0 at time %d:%ld\n",pid,clk -> sec,clk -> nano,linecount++);
+					fprintf(fptr,"OSS: Generating process with PID %d (High priority) and putting it in queue 0 at time %d:%ld\n",pid,clk -> sec,clk -> nano);
+					linecount++;
 				push(&lq,pid);
 			}
 			 else if(pcb[location].priority == 2)
 			{
 				if(linecount < 10000)
-					fprintf(fptr,"OSS: Generating process with PID %d (Medium priority) and putting it in queue 0 at time %d:%ld\n",pid,clk -> sec,clk -> nano,linecount++);
+					fprintf(fptr,"OSS: Generating process with PID %d (Medium priority) and putting it in queue 0 at time %d:%ld\n",pid,clk -> sec,clk -> nano);
+					linecount++;
 				push(&rr,pid);
 			}
 			else if(pcb[location].priority == 3)
 			{
 				if(linecount < 10000)
-					fprintf(fptr,"OSS: Generating process with PID %d (Low priority) and putting it in queue 0 at time %d:%ld\n",pid,clk -> sec,clk -> nano,linecount++);
+					fprintf(fptr,"OSS: Generating process with PID %d (Low priority) and putting it in queue 0 at time %d:%ld\n",pid,clk -> sec,clk -> nano);
+					linecount++;
 				push(&lq,pid);
 			} 
-			else
-			{
-				/* code */
-			}
-			
+
 			location = -1;	 
 		}
 		
@@ -180,7 +185,8 @@ int main (int argc,char *argv[])
 		if((proc = pop(&rr)) > 0)
 		{
 			if(linecount < 10000)
-				fprintf(fptr,"OSS: Dispatching pid : %d at %d:%ld\n",proc,clk -> sec,clk -> nano,linecount++);
+				fprintf(fptr,"OSS: Dispatching pid : %d at %d:%ld\n",proc,clk -> sec,clk -> nano);
+				linecount++;
 			clk -> pid = proc;
 			clk -> quantum = Quantum/2;
 			endsec = clk -> sec;
@@ -195,10 +201,12 @@ int main (int argc,char *argv[])
 			if(pcb[location].status == 1)
 			{
 				if(linecount < 10000)
-					fprintf(fptr,"OSS: Receiving pid : %d executed %ld\n",proc,pcb[location].burst_time,linecount++);
+					fprintf(fptr,"OSS: Receiving pid : %d executed %ld\n",proc,pcb[location].burst_time);
+					linecount++;
 				waitpid(proc, &status,0);
 				if(linecount < 10000)
-					fprintf(fptr,"OSS: PID %d finished execution at time  %f  Total : %f\n",proc,pcb[location].CPU_time,pcb[location].total_time,linecount++);
+					fprintf(fptr,"OSS: PID %d finished execution at time  %f  Total : %f\n",proc,pcb[location].CPU_time,pcb[location].total_time);
+					linecount++;
 				clearPCB(location);
 			}
 			else
@@ -301,7 +309,7 @@ void sigintHandler(int sig_num)
     else
 	fprintf(stderr,"Program: Time limit exceeded\n");
     int i;
-	fprintf(stderr,"Clock Time: Seconds = %d, Nano %d\n", clk -> sec, clk -> nano);
+	fprintf(stderr,"Clock Time: Seconds = %d, Nano %ld\n", clk -> sec, clk -> nano);
 	fprintf(stderr,"Total Childs Forked : %d\n",clk -> count);
 	
    for(i = 0; i < 18; i++)
@@ -329,7 +337,7 @@ void sigintHandler(int sig_num)
     fflush(stdout); 
 } 
 
-int createChild()
+int createChildProc()
 {
 	
 	int i;
