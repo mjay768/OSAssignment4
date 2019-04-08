@@ -316,7 +316,6 @@ void sigintHandler(int sig_num)
    {
        if(pcb[i].pid > 0 )
        {
-           //fprintf(stderr,"Killing Child : %d --- %d\n",pcb[i].pid,i);
 	       kill(pcb[i].pid, SIGTERM);
        }
     }

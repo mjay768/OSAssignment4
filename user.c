@@ -11,26 +11,6 @@
 #include "processinfo.h"
 #include "processqueue.h"
 
-/* typedef struct PCB 
-{
-	float CPU_time;
-	float total_time;
-	long int burst_time;
-	int pid;
-	int priority;
-	int status;
-	
-}PCB;
-
-typedef struct Clock 
-{
-	int	sec;
-	long int nano;
-	int pid;
-	int quantum;
-	int count;
-	
-} Clock; */
 Clock *clk;
 PCB *pcb;
 int r,seed =24;
@@ -105,15 +85,12 @@ int isCompleted(int loc)
 						break;
 				case 1:
 						wait = (float)(clk -> quantum) / MILLISEC;
-						
-						//wait(wait);
 						break;
 				case 2:	
 						r = rand()%5;
 						s = rand()%1000;
 						_time = (float)s / 1000;
 						wait = (float)r + _time;
-						//wait(wait);
 						break;
 				case 3:
 
@@ -121,7 +98,7 @@ int isCompleted(int loc)
 						_time = (float)r / 100;
 						quantum = (float)(clk -> quantum) / MILLISEC ;
 						wait = (float) quantum  * _time;
-						//wait(wait);
+						
 						break;
 				default:
 						fprintf(stderr,"User Process Error Occurred\n");
