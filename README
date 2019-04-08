@@ -1,0 +1,9 @@
+Usage: 
+
+use ./oss -l logfile_name -t burst_time 
+
+Description:
+
+This project designed to simulate the process scheduling in an Operating System. It is not an accurate implementation of the scheduling, but gives an idea about the process queuing. The log provides an overview about the process spawn timing,burst times,arrival time and also about quantum.
+
+Use make clean to delete the object files. 

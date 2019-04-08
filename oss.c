@@ -1,3 +1,10 @@
+/************************************************/
+/* Title : Process Scheduling *******************/
+/* Desctiption : This is a brief replication     **/
+/*  of process scheduling in an Operating System */
+/************************************************/
+#include <sys/ipc.h> 
+#include <sys/shm.h> 
 #include <stdio.h> 
 #include <stdlib.h>
 #include <signal.h> 
@@ -6,82 +13,37 @@
 #include <unistd.h>
 #include <semaphore.h> 
 #include <fcntl.h>
-#include <sys/ipc.h> 
-#include <sys/shm.h>
 #include "processqueue.h"
 #include "processinfo.h"
-#define QUANTUM 10
-#define semname "mysemaphore"
-
-#define key1 0x98989898
-#define key2 0x10101010
-
-// Queue levels declaration
-#define RT 0
-#define UP 1
-//***********************//
-
-//Global variables 
-int maxTimeBetweenProcsSecs = 0;
-long int maxTimeBetweenProcsNS = 0;
 
 
 FILE *fptr;
 sem_t *sem;
-int pcbid;
-int clockid;
+int pcbid,clkid;
 PCB *pcb;
 Clock *clk;
 int linecount = 0;
 
-int TTG;
- char debugtext[128];
-FILE *debugfile;
-
-int main(int argc, char *argv[])
-{
-    char arg1[20];
-	char arg2[20];
+int main (int argc,char *argv[]) 
+{ 
+	char arg1[10];
+	char arg2[10];
 	char arg3[20];
-	char opt;
 	char *logfile = "log";
-	char *dfile = "debugfile.txt";
-	int i,status,pid,location = -1,proc;
-	signal(SIGALRM, sigintHandler);
-    signal(SIGINT, sigintHandler);
+	int startsec = 0,endsec = 0, diffSec = 0;
+	long int SNano = 0, ENano = 0, dNano =0,difference =0;
 
-	// Queues
+	int opt, i,status,pid,t=2;
+	int generateindex = 0;
 	struct Queue rr;
 	struct Queue hq;
 	struct Queue mq;
-	struct Queue lq; 
-
-    debugfile = fopen(dfile,"w");
-	if(dfile == NULL)
-	{
-		perror("File open error");
-		fprintf(stderr,"File open error");
-	}
-	else printf("\n Debug file opened");
-	//key_t key1 = ftok("MJ768",'m'),key2 = ftok("MJClk",'s');
-	sem = sem_open("ponagand",O_CREAT, 0666, 0);
-	if(sem = SEM_FAILED)
-	{
-		perror("Semaphore open error");
-		fprintf(stderr,"Semaphore Failed to open");
-		writedebug("Semaphore Failed to open");
-	}
-	else printf("\nSemaphore address %d",sem);		
-
-    int startsec = 0;
-    int endsec = 0;
-    int diffsec = 0;
-	int t=2; // Initializing default burst time
-
-	long int snano = 0, enano = 0, diffnano = 0, diff_time;
+	struct Queue lq;
+	signal(SIGALRM, sigintHandler);
+    signal(SIGINT, sigintHandler);
 	
 	
-    while((opt= getopt(argc,argv, "hlt")) != -1)
+	while((opt= getopt(argc,argv, "hlt")) != -1)
     {
         switch(opt)
         {
@@ -96,450 +58,280 @@ int main(int argc, char *argv[])
         }
     }
 
-	fptr = fopen(logfile,"w");
-	if(fptr == NULL)
-	{
-		perror("File open error");
-		fprintf(stderr,"File open error");
-	}
-	else printf("\nLog File opened ");
-	fprintf(stderr,"Log File: %s\n",logfile);
-
-	int shmid = shmget(key1, sizeof(PCB) * 18, IPC_CREAT | 0666);
-	if(shmid == -1)
-	{
-		perror("Shared Memory open error");
-		fprintf(stderr,"OSS : Shared Memory Open Error");
-		writedebug("Shared Memory Open Error");
-	}
-	else printf("\nShared Memory Opened");
-
-	pcb = (PCB *)shmat(shmid,0,0);
-
-	clockid = shmget(key2,sizeof(clk), IPC_CREAT | 0666);
-	if(clockid == -1)
-	{
-		perror("Clock creation error");
-		fprintf(stderr,"OSS : Clock creation error");
-		writedebug("Clock creation error");
-	}
-	else printf("\nClock opened");
-
-	clk =  (Clock *)shmat(clockid, 0, 0);
-	printf("\nClock attached to clk");
-	snprintf(arg1,10,"%d", shmid);
-	snprintf(arg2,10,"%d",clockid);
-	snprintf(arg3,20,"%s", "ponagand");
-	printf("\n PCB id from parent %d",shmid);
-	printf("\n Clk id from parent %d",clockid);
+	fptr = fopen(logfile, "w");
+    if(fptr == NULL)
+    {
+      fprintf(stderr,"File open error \n");
+      exit(1);
+    }
+	fprintf(stderr,"Log file : %s\n",logfile);
+	key_t key = ftok("ponagand",'m');
+	key_t key2 = ftok("ponagand",'j');
+	int sizepcb = 18 * sizeof(pcb);
+	if((sem = sem_open(SemName, O_CREAT, 0666, 0)) == SEM_FAILED )
+		fprintf(stderr,"Semaphore could not be opened\n");
+	
+	pcbid = shmget(key,sizepcb,0666|IPC_CREAT);
+	if ( pcbid == -1 )
+		fprintf(stderr,"Shared Memory : Error Opening");
+	
+	pcb = (PCB *)shmat(pcbid, NULL, 0);
+	
+	clkid = shmget(key2,sizeof(clk),0666|IPC_CREAT);
+	if ( clkid == -1 )
+		fprintf(stderr,"Clock Memory : Error opening");
+	
+	clk = (Clock *)shmat(clkid, NULL, 0);
+	
 	clk -> sec = 0;
-	clk -> nsec = 0;
+	clk -> nano = 0;
 	clk -> pid = -1;
 	clk -> quantum = 0;
-	clk -> count = 0;
-
-	//alarm(t);
-	for(i = 0; i<18 ; i++)
+	clk -> count  = 0;
+	
+	
+	
+	
+	for(i  = 0; i < 18; i++ )
 	{
-		clearPCB(i); // Using this function just to make it easy initializing the PCB.
+		pcb[i].CPU_time = 0.0;
+		pcb[i].total_time = 0.0;
+		pcb[i].burst_time = 0;
+		pcb[i].pid = -1;
+		pcb[i].priority = -1;
+		pcb[i].status = 0;
 	}
-	printf("\nPCB initialized\n");
-	writedebug("\nPCB initialized\n");
-	//fprintf(debugfile,"\nPCB Initialized");
-
-	init(&rr);
-	init(&hq);
-	init(&mq);
-	init(&lq);
-	//alarm(5);
+	
+	//pcb[0].CPU_time = -90;
+	
+	
+	
+	
+	snprintf(arg1,10,"%d", pcbid);
+	snprintf(arg2,10,"%d",clkid);
+	snprintf(arg3,20,"%s", SemName);
+	
+	alarm(t);
+	       
+    
+ 	int location = -1,proc;
 	srand(time(NULL));
-	writedebug("Queues Initialized");
-	printf("\nQueues Initialized\n");
-
-	/* Test code 
-	
-	pcb[0].priority = getPriority();
-	printf("\n Priority is %d", pcb[0].priority);
-	pcb[1].priority = getPriority();
-	printf("\n Priority is %d", pcb[1].priority);
-	pcb[2].priority = getPriority();
-	printf("\n Priority is %d", pcb[2].priority);
-	pcb[3].priority = getPriority();
-	printf("\n Priority is %d", pcb[3].priority); 
-	
-	*/
-	while(1)
-	{
-		if(location = createChildProc() >= 0 && clk->sec >= TTG)
+	init(&rr);
+	init(&lq);
+	 
+	while(1){
+		
+		if( (location = createChild()) >= 0  && clk -> sec  >= generateindex)
 		{
+	
+	
+			
 			if( (pid = fork()) == 0)
 			{
-				execlp("./user","./user",arg1,arg2,(char*)NULL);
-				fprintf(stderr,"\nFork error occurred\n");
+				
+				execlp("./user","./user",arg1,arg2,arg3,(char *)NULL);
+				fprintf(stderr,"%s failed to exec worker!\n",argv[0]);
 				exit(0);
 			}
-
-
-			TTG += rand()%3;
-			pcb[location].priority = getPriority();
-			if(pcb[location].priority == 1)
-				pcb[location].pclass == RT;
-			else if(pcb[location].priority == 0)
-				pcb[location].pclass == UP;
 			
-			printf("\n Priority is %d\n", pcb[location].priority);
+			generateindex += rand()%3; 
+			pcb[location].priority = setPriority();  
 			pcb[location].pid = pid;
-			switch (pcb[location].priority)
+			if(pcb[location].priority == 0)
 			{
-				case 0:
-					if(linecount < 10000)
-					{
-						fprintf(fptr,"OSS : Generating process with PID %d (Round-Robin High Priority) and putting it in queue 0 at time %d:%ld\n",pid,clk -> sec,clk ->nsec);
-						printf("OSS : Generating process with PID %d (Round-Robin High Priority) and putting it in queue 0 at time %d:%ld\n",pid,clk -> sec,clk ->nsec);
-						linecount++;
-						push(&rr, pid);
-					}
-					break;
-				case 1:
-					if(linecount < 10000)
-					{
-						fprintf(fptr,"OSS : Generating process with PID %d (High Priority) and putting it in queue 1 at time %d:%ld\n",pid,clk -> sec,clk ->nsec);
-						printf("OSS : Generating process with PID %d (High Priority) and putting it in queue 1 at time %d:%ld\n",pid,clk -> sec,clk ->nsec);
-						linecount++;
-						push(&hq, pid);
-					}
-					break;
-				
-				
+				if(linecount < 10000)
+					fprintf(fptr,"OSS: Generating process with PID %d (Round Robin High Priority) and putting it in queue 1 at time %d:%ld\n",pid,clk -> sec,clk -> nano,linecount++);
+				push(&rr, pid);
 			}
-			location = -1;
-
+			else if(pcb[location].priority == 1)
+			{
+				if(linecount < 10000)
+					fprintf(fptr,"OSS: Generating process with PID %d (High priority) and putting it in queue 0 at time %d:%ld\n",pid,clk -> sec,clk -> nano,linecount++);
+				push(&lq,pid);
+			}
+			 else if(pcb[location].priority == 2)
+			{
+				if(linecount < 10000)
+					fprintf(fptr,"OSS: Generating process with PID %d (Medium priority) and putting it in queue 0 at time %d:%ld\n",pid,clk -> sec,clk -> nano,linecount++);
+				push(&rr,pid);
+			}
+			else if(pcb[location].priority == 3)
+			{
+				if(linecount < 10000)
+					fprintf(fptr,"OSS: Generating process with PID %d (Low priority) and putting it in queue 0 at time %d:%ld\n",pid,clk -> sec,clk -> nano,linecount++);
+				push(&lq,pid);
+			} 
+			else
+			{
+				/* code */
+			}
+			
+			location = -1;	 
 		}
-		clk -> nsec += rand()%1000;
-		maxTimeBetweenProcsSecs += rand()%3;
-		maxTimeBetweenProcsNS += rand()%1000000000;
-		time_increment();
-
+		
+	
+		clk -> nano += rand()%1000;	
+		if(clk -> nano > NANO)
+		{
+			clk -> sec += clk -> nano/NANO;
+			clk -> nano %= NANO;
+		}	
+		
 		if((proc = pop(&rr)) > 0)
 		{
 			if(linecount < 10000)
-			{
-				fprintf(fptr, "OSS: Dispatching PID %d at %d:%ld\n",pid,clk->sec,clk->nsec);
-				linecount++;
-			}
-			// Calculating dispatch time.
-
+				fprintf(fptr,"OSS: Dispatching pid : %d at %d:%ld\n",proc,clk -> sec,clk -> nano,linecount++);
 			clk -> pid = proc;
-			clk -> quantum = QUANTUM/2;
-			enano = clk ->nsec;
-			endsec = clk ->sec;
-			diffsec = endsec - startsec;
-			diffnano = enano - snano;
-			diff_time = diffsec * NANO + diffnano;
-
-			/*************************/
-
+			clk -> quantum = Quantum/2;
+			endsec = clk -> sec;
+			ENano = clk -> nano;
+			diffSec = endsec - startsec;
+			dNano = ENano - SNano;
+			difference = diffSec * NANO + dNano;
 			if(linecount < 10000)
-			{
-				fprintf(fptr,"OSS: Total time this dispatch was %ld\n",diff_time);
-				linecount++;
-			}
+				fprintf(fptr,"OSS: Total time this dispatch was %ld\n",difference,linecount++);
 			sem_wait(sem);
-			location = getPcbByPid(proc);
+			location = getPCBbyPID(proc);
 			if(pcb[location].status == 1)
 			{
 				if(linecount < 10000)
-				{
-					fprintf(fptr,"OSS: Receiving that process with PID %d ran for %ld\n",proc,pcb[location].last_burst);
-					linecount++;
-				}
-				waitpid(proc, &status, 0);
+					fprintf(fptr,"OSS: Receiving pid : %d executed %ld\n",proc,pcb[location].burst_time,linecount++);
+				waitpid(proc, &status,0);
 				if(linecount < 10000)
-				{
-					fprintf(fptr, "OSS: Process PID %d has finished executing and took time of %f\n",proc,pcb[location].total_time);
-					linecount++;
-				}
+					fprintf(fptr,"OSS: PID %d finished execution at time  %f  Total : %f\n",proc,pcb[location].CPU_time,pcb[location].total_time,linecount++);
 				clearPCB(location);
 			}
 			else
 			{
+			if(linecount < 10000)		
+				fprintf(fptr,"OSS: Receiving that process with PID %d ran for %ld\n",proc,pcb[location].burst_time);
+				linecount++;
+			if(pcb[location].burst_time <= 5000000)
 				if(linecount < 10000)
-				{
-					fprintf(fptr,"OSS: Receiving that process with PID %d ran for %ld\n",proc,pcb[location].last_burst);
+					fprintf(fptr,"OSS: not used it entire quantum \n");
 					linecount++;
-				}
-				if(pcb[location].last_burst <= 5000000)
-				{
-					fprintf(fptr,"OSS: Not used its entire time quantum\n");
-					fprintf(fptr,"OSS: Putting process with PID %d into queue 0\n",proc);
-					linecount+=2;
-				}
-				
-				push(&rr,proc);
+			if(linecount < 10000)
+				fprintf(fptr,"OSS: Putting process with PID %d into queue 0\n",proc++);
+				linecount;
+			push(&rr,proc);
 			}
-				clk -> nsec += pcb[location].last_burst;
-				time_increment();
-
-				startsec = clk -> sec;
-				snano = clk -> nsec;
-				location = -1;
-
+			clk -> nano +=  pcb[location].burst_time;
+			if(clk -> nano > NANO)
+			{
+				clk -> sec += clk -> nano/NANO;
+				clk -> nano %= NANO;
+			}
 			
-
-		}
-		else if((proc = pop(&hq)) > 0)
-		{
-			if(linecount < 10000)
-			{
-				fprintf(fptr, "OSS: Dispatching PID %d at %d:%ld\n",proc,clk->sec,clk->nsec);
-				linecount++;
-			}
-			// Calculating dispatch time.
-
-			clk -> pid = proc;
-			clk -> quantum = QUANTUM;
-			enano = clk ->nsec;
-			endsec = clk ->sec;
-			diffsec = endsec - startsec;
-			diffnano = enano - snano;
-			diff_time = diffsec * NANO + diffnano;
-
-			/*************************/
-
-			if(linecount < 10000)
-			{
-				fprintf(fptr,"OSS: Total time this dispatch was %ld\n",diff_time);
-				linecount++;
-			}
-			sem_wait(sem);
-			location = getPcbByPid(proc);
-			if(pcb[location].status == 1)
-			{
-				if(linecount < 10000)
-				{
-					fprintf(fptr,"OSS: Receiving that process with PID %d ran for %ld\n",proc,pcb[location].last_burst);
-					linecount++;
-				}
-				waitpid(proc, &status, NULL);
-				if(linecount < 10000)
-				{
-					fprintf(fptr, "OSS: Process PID %d has finished executing and took time of %f\n",proc,pcb[location].total_time);
-					linecount++;
-				}
-				//push(&mq,proc);
-				clearPCB(location);
-			}
-			else
-			{
-				if(linecount <10000)
-				{
-					fprintf(fptr,"OSS: Receiving PID %d ran for %ld",proc,pcb[location].last_burst);
-					linecount++;
-				}
-				if(pcb[location].last_burst < 10000000)
-					if(linecount < 10000)
-					{
-						fprintf(fptr, "OSS: Not using its entire quantum");
-						fprintf(fptr,"OSS: Putting process with PID %d into Queue 0",pid);
-						linecount+=2;
-					}
-				push(&hq,proc);
-			}
-			clk -> nsec += pcb[location].last_burst;
-			time_increment();
-
 			startsec = clk -> sec;
-			snano = clk -> nsec;
+			SNano = clk -> nano;
 			location = -1;
-
 			
-
-		}
-		else if((proc = pop(&mq)) > 0)
-		{
-			if(linecount < 10000)
-			{
-				fprintf(fptr, "OSS: Dispatching PID %d at %d:%ld\n",pid,clk->sec,clk->nsec);
-				linecount++;
-			}
-			// Calculating dispatch time.
-
-			clk -> pid = proc;
-			clk -> quantum = QUANTUM/2;
-			enano = clk ->nsec;
-			endsec = clk ->sec;
-			diffsec = endsec - startsec;
-			diffnano = enano - snano;
-			diff_time = diffsec * NANO + diffnano;
-
-			
-
-			if(linecount < 10000)
-			{
-				fprintf(fptr,"OSS: Total time this dispatch was %ld\n",diff_time);
-				linecount++;
-			}
-			sem_wait(sem);
-			location = getPcbByPid(proc);
-			if(pcb[location].status == 1)
-			{
-				if(linecount < 10000)
-				{
-					fprintf(fptr,"OSS: Receiving that process with PID %d ran for %ld\n",proc,pcb[location].last_burst);
-					linecount++;
-				}
-				waitpid(proc, &status, NULL);
-				if(linecount < 10000)
-				{
-					fprintf(fptr, "OSS: Process PID %d has finished executing and took time of %f\n",proc,pcb[location].total_time);
-					linecount++;
-				}
-				//push(&lq,proc);
-				clearPCB(location);
-			}
-			else
-			{
-				if(linecount <10000)
-				{
-					fprintf(fptr,"OSS: Receiving PID %d ran for %ld",proc,pcb[location].last_burst);
-					linecount++;
-				}
-				if(pcb[location].last_burst <= 1000000)
-					if(linecount < 10000)
-					{
-						fprintf(fptr, "OSS: Not using its entire quantum");
-						fprintf(fptr,"OSS: Putting process with PID %d into Queue 0",pid);
-						linecount+=2;
-					}
-				push(&hq,proc);
-				
-			}
-			clk -> nsec += pcb[location].last_burst;
-			time_increment();
-
-			startsec = clk -> sec;
-			snano = clk -> nsec;
-			location = -1;
-
-		}
+		} 
 		else if((proc = pop(&lq)) > 0)
 		{
 			if(linecount < 10000)
-			{
-				fprintf(fptr, "OSS: Dispatching PID %d at %d:%ld\n",proc,clk->sec,clk->nsec);
+				fprintf(fptr,"OSS: Dispaching PID %d at time %d:%ld\n",proc,clk -> sec,clk -> nano);
 				linecount++;
-			}
-			// Calculating dispatch time.
-
 			clk -> pid = proc;
-			clk -> quantum = QUANTUM/2;
-			enano = clk ->nsec;
-			endsec = clk ->sec;
-			diffsec = endsec - startsec;
-			diffnano = enano - snano;
-			diff_time = diffsec * NANO + diffnano;
-
-			
-
+			clk -> quantum = Quantum;
+			endsec = clk -> sec;
+			ENano = clk -> nano;
+			diffSec = endsec - startsec;
+			dNano = ENano - SNano;
+			difference = diffSec * NANO + dNano;
 			if(linecount < 10000)
-			{
-				fprintf(fptr,"OSS: Total time this dispatch was %ld\n",diff_time);
+				fprintf(fptr,"OSS: Total time this dispatch was %ld\n",difference);
 				linecount++;
-			}
 			sem_wait(sem);
-			location = getPcbByPid(proc);
+			location = getPCBbyPID(proc);
 			if(pcb[location].status == 1)
 			{
 				if(linecount < 10000)
-				{
-					fprintf(fptr,"OSS: Receiving that process with PID %d ran for %ld\n",proc,pcb[location].last_burst);
+					fprintf(fptr,"OSS: Receiving that process with PID %d ran for %ld\n",proc,pcb[location].burst_time);
 					linecount++;
-				}
-				waitpid(proc, &status, NULL);
+				waitpid(proc, &status,0);
 				if(linecount < 10000)
-				{
-					fprintf(fptr, "OSS: Process PID %d has finished executing and took time of %f\n",proc,pcb[location].total_time);
+					fprintf(fptr,"OSS: PID %d finished execution at time  %f  Total : %f\n",proc,pcb[location].CPU_time,pcb[location].total_time);
 					linecount++;
-				}
-				//push(&lq,proc);
 				clearPCB(location);
 			}
 			else
 			{
-				if(linecount <10000)
-				{
-					fprintf(fptr,"OSS: Receiving PID %d ran for %ld",proc,pcb[location].last_burst);
+			if(linecount < 10000)
+				fprintf(fptr,"OSS: Receiving that process with PID %d ran for %ld\n",proc,pcb[location].burst_time);
+				linecount++;
+			if(pcb[location].burst_time <= 10000000)
+				if(linecount < 10000)
+					fprintf(fptr,"OSS: not used it entire quantum \n");
 					linecount++;
-				}
-				if(pcb[location].last_burst < 1000000)
-					if(linecount < 10000)
-					{
-						fprintf(fptr, "OSS: Not using its entire quantum");
-						fprintf(fptr,"OSS: Putting process with PID %d into Queue 0",pid);
-						linecount+=2;
-					}
-				push(&mq,proc);
-				
+			if(linecount < 10000)	
+				fprintf(fptr,"OSS: Putting process with PID %d into queue 1\n",proc);
+				linecount++;
+			push(&lq,proc);
 			}
-			clk -> nsec += pcb[location].last_burst;
-			time_increment();
-
+			clk -> nano +=  pcb[location].burst_time;
+			if(clk -> nano > NANO)
+			{
+				clk -> sec += clk -> nano/NANO;
+				clk -> nano %= NANO;
+			}	
 			startsec = clk -> sec;
-			snano = clk -> nsec;
+			SNano = clk -> nano;
 			location = -1;
-
-		} 
-		else
-		{
-			clk ->sec += 1;
-			time_increment();
 		}
 		
-
+		else
+			advanceClock();
+		
+	
 	}
-
-return 0;
+ 
+	shmdt(pcb);
+	shmdt(clk);
+	shmctl(pcbid,IPC_RMID,NULL);
+	shmctl(clkid,IPC_RMID,NULL);
+	return 0;
 }
-
 
 void sigintHandler(int sig_num) 
 { 
 
     if(sig_num == 2)
-    	fprintf(stderr,"Program interrupted while running\n");
+    	fprintf(stderr,"Program: Interrupted\n");
     else
-	fprintf(stderr,"Program Time Limit Exceeded\n");
+	fprintf(stderr,"Program: Time limit exceeded\n");
     int i;
-	fprintf(stderr,"Clock status : sec = %d, nano %ld\n", clk -> sec, clk -> nsec);
-	fprintf(stderr,"Total Children Forked : %d\n",clk -> count);
+	fprintf(stderr,"Clock Time: Seconds = %d, Nano %d\n", clk -> sec, clk -> nano);
+	fprintf(stderr,"Total Childs Forked : %d\n",clk -> count);
 	
    for(i = 0; i < 18; i++)
    {
        if(pcb[i].pid > 0 )
        {
-
+           //fprintf(stderr,"Killing Child : %d --- %d\n",pcb[i].pid,i);
 	       kill(pcb[i].pid, SIGTERM);
        }
     }
-	fprintf(stderr,"Remaining Children : Removed\n");
+	fprintf(stderr,"Remaining children being removed\n");
     
-    fprintf(stderr,"\nTTG : %d",TTG);
+    
   
 	shmdt(pcb);
 	shmdt(clk);
-	fprintf(stderr,"Shared Memory : Detached\n");
+	fprintf(stderr,"Shared Memory: Detached\n");
 	fclose(fptr);
-    sem_unlink("ponagand");
-	fprintf(stderr,"Semaphore : Unlinked\n");
+    sem_unlink(SemName);
+	fprintf(stderr,"Semaphore: Unlinked\n");
     shmctl(pcbid,IPC_RMID,NULL);
-	shmctl(clockid,IPC_RMID,NULL);
-	fprintf(stderr,"Shared Memory : Cleared\n");
+	shmctl(clkid,IPC_RMID,NULL);
+	fprintf(stderr,"Shared Memory: Cleared \n");
     abort(); 
     fflush(stdout); 
 } 
 
-int createChildProc()
+int createChild()
 {
+	
 	int i;
 	for(i  = 0; i < 18; i++ )
 		if(pcb[i].pid == -1)
@@ -547,61 +339,7 @@ int createChildProc()
 	return -1;
 }
 
-void advanceClock()
-{
-	clk -> sec += 1;
-	if(clk -> nsec > NANO)
-		{
-			clk -> sec += clk -> nsec/NANO;
-			clk -> nsec %= NANO;
-		}	
-}
-
-void clearPCB(int location)
-{
-		pcb[location].CPU_time = 0.0;
-		pcb[location].total_time = 0.0;
-		pcb[location].last_burst = 0;
-		pcb[location].pid = -1;
-		pcb[location].priority = -1;
-		pcb[location].status = 0;
-		pcb[location].pclass = -1;
-		pcb[location].pqueue = -1;
-}
-
-void initclock()
-{
-	clk -> sec = 0;
-	clk -> nsec = 0;
-	clk -> pid = -1;
-	clk -> quantum = 0;
-	clk -> count = 0;
-	writedebug("\nClock initiated to 0s");
-}
-
-void writedebug(char errortext[128])
-{
-	//snprintf(debugtext, 100,"%s",errortext);
-	fprintf(debugfile,"%s",errortext);
-}
-
-int setClass()
-{
-	if(rand()%100 > 75 )
-		return 1;			//Real Time
-	else 
-		return 0;		    //Normal Process	
-}
-
-int setPriority()
-{
-	if(rand()%100 > 85 )
-		return RT;			// Medium Priority
-	else 
-		return UP;		    //Low Priority
-		
-}
-int getPcbByPid(int pid)
+int getPCBbyPID(int pid)
 {
 	int i;
 	for(i  = 0; i < 18; i++ )
@@ -610,12 +348,24 @@ int getPcbByPid(int pid)
 	return -1;
 }
 
-void time_increment()
+void clearPCB(int location)
 {
-	clk->sec+=1;
-	if(clk -> nsec > NANO)
-	{
-		clk -> sec += clk -> nsec/NANO;
-		clk -> nsec %= NANO;
-	}
+		pcb[location].CPU_time = 0.0;
+		pcb[location].total_time = 0.0;
+		pcb[location].burst_time = 0;
+		pcb[location].pid = -1;
+		pcb[location].priority = -1;
+		pcb[location].status = 0;
 }
+
+void advanceClock()
+{
+	clk -> sec += 1;
+	if(clk -> nano > NANO)
+		{
+			clk -> sec += clk -> nano/NANO;
+			clk -> nano %= NANO;
+		}	
+	
+}
+	  

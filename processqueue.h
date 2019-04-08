@@ -54,6 +54,5 @@ void push(struct Queue *q, int data) {
 		q->last = q->last->next;
 	}
 }
-
  
 #endif
